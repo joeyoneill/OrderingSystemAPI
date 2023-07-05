@@ -165,5 +165,66 @@ namespace api_obj_3.Controllers
         //////////////////////////////////////////////////////////////////////
         // POST: Order API Calls
         //////////////////////////////////////////////////////////////////////
+        
+        // POST: Adds Order
+        [HttpPost("AddOrder")]
+        public async Task<ActionResult<List<Order>>> AddOrder(Order order) {
+            
+            // null check
+            if (order == null || _context.Orders == null)
+                return NotFound();
+
+            // Add Item
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            // get items
+            var orders = await _context.Orders.ToListAsync();
+
+            // null check
+            if (orders == null)
+                return NotFound();
+            
+            // return list
+            return Ok(orders);
+        }
+
+        // Adds Item to Order
+        [HttpPost("AddItemToOrder/itemid={itemId}&orderid={orderId}")]
+        public async Task<ActionResult<List<Item>>> AddItemToOrder(int itemId, int orderId) {
+            if (_context.Orders == null || _context.Items == null || _context.OrdersItems == null)
+                return NotFound();
+
+            // get order + item
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+            var item = await _context.Items.FirstOrDefaultAsync(i => i.Id == itemId);
+
+            // null check
+            if (order == null || item == null)
+                return NotFound();
+
+            // create OrdersItems obj
+            var obj = new OrdersItem {
+                OrderId = order.Id,
+                ItemId = item.Id
+            };
+            
+            // Add Obj to OrdersItems table
+            _context.OrdersItems.Add(obj);
+            await _context.SaveChangesAsync();
+
+            // Get All Items from OrdersItems and save to list
+            var orderItems = await _context.OrdersItems
+                .Where(oi => oi.OrderId == orderId)
+                .Include(oi => oi.Item) // Include the Item related to each OrdersItems entry
+                .Select(oi => oi.Item) // Select the Item from each OrdersItems entry
+                .ToListAsync();
+
+            // orderItems null check
+            if (orderItems.Count == 0)
+                return NotFound();
+
+            return Ok(orderItems);
+        }
     }
 }
