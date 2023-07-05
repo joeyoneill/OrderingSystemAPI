@@ -15,6 +15,6 @@ namespace api_obj_3.Models
 
         public decimal? Subtotal { get; set; }
 
-        //public virtual ICollection<OrdersItems> OrdersItems { get; set; } = new List<OrdersItems>();
+        //public virtual ICollection<OrdersItem> OrdersItems { get; set; } = new List<OrdersItem>();
     }
 }
